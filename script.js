@@ -414,43 +414,32 @@ function showPage(pageId) {
             goToSlide(0);
         }
     }
-    // =======================================
-
-    // === 執行百分之百靜音與停止機制 ===
+   
     handleVideosAndSounds(pageId);
 }
 window.showPage = showPage;
 
-// 核心：絕對靜音與影片重置機制
 function handleVideosAndSounds(activePageId) {
-    // 1. 處理原生 HTML5 <video>
     const videos = document.querySelectorAll('video');
     videos.forEach(video => {
         video.pause();
         video.currentTime = 0;
     });
 
-    // 2. 處理 iframe (YouTube / Vimeo 等) - 終極抹除大法
     const allIframes = document.querySelectorAll('iframe');
     
     allIframes.forEach((iframe, index) => {
-        // 給每個 iframe 一個專屬的識別標籤
         if (!iframe.dataset.id) {
             iframe.dataset.id = 'iframe-' + index;
         }
         const iframeId = iframe.dataset.id;
-
-        // 檢查這個 iframe 是不是在「當前要顯示的頁面」裡面
         const isInsideActivePage = iframe.closest('.page') && iframe.closest('.page').id === activePageId;
 
         if (isInsideActivePage) {
-            // 如果是在要顯示的頁面，且之前被清空過，就從記憶庫撈出原本的網址還原它
             if ((!iframe.src || iframe.src === 'about:blank') && iframeSrcMap.has(iframeId)) {
                 iframe.src = iframeSrcMap.get(iframeId);
             }
         } else {
-            // 如果是在被隱藏的頁面，先把原本的網址記下來，然後直接把網址徹底抹空！
-            // 網址變成 about:blank 之後，任何聲音、影片串流都會瞬間「絕對終止」
             if (iframe.src && iframe.src !== 'about:blank') {
                 iframeSrcMap.set(iframeId, iframe.src);
                 iframe.src = 'about:blank'; 
